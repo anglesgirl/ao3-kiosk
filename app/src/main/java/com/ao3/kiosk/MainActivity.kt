@@ -9,6 +9,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.GeckoRuntime
+import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
 import org.mozilla.geckoview.GeckoSession.ContentDelegate
@@ -96,10 +97,6 @@ class MainActivity : AppCompatActivity() {
                     session.loadUri(START_URL)
                 }
             }
-            override fun onSecurityChange(
-                session: GeckoSession,
-                securityInfo: ProgressDelegate.SecurityInformation
-            ) {}
         }
 
         // 创建 GeckoRuntime(单例,整个进程只创建一次)

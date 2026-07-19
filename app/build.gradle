@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace 'com.ao3.kiosk'
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.ao3.kiosk"
@@ -35,6 +35,6 @@ android {
 
 dependencies {
     implementation "org.mozilla.geckoview:geckoview:147.0.20260116091309"
-    implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.core:core-ktx:1.17.0'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
 }
