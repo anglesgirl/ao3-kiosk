@@ -2,7 +2,77 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/ao3_dark">
+
+    <LinearLayout
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="4dp"
+        android:background="@color/ao3_dark"
+        android:elevation="4dp">
+
+        <ImageButton
+            android:id="@+id/btn_back"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/btn_back"
+            android:tint="@color/ao3_text" />
+
+        <ImageButton
+            android:id="@+id/btn_forward"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_media_next"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/btn_forward"
+            android:tint="@color/ao3_text" />
+
+        <EditText
+            android:id="@+id/url_bar"
+            android:layout_width="0dp"
+            android:layout_height="36dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
+            android:hint="@string/url_hint"
+            android:textColorHint="@color/ao3_text_dim"
+            android:textColor="@color/ao3_text"
+            android:textSize="13sp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:background="@drawable/url_bg"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:inputType="textUri"
+            android:imeOptions="actionGo"
+            android:selectable="true" />
+
+        <ImageButton
+            android:id="@+id/btn_reload"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_popup_sync"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/btn_reload"
+            android:tint="@color/ao3_text" />
+
+        <ImageButton
+            android:id="@+id/btn_menu"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_more"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/btn_menu"
+            android:tint="@color/ao3_text" />
+
+    </LinearLayout>
 
     <org.mozilla.geckoview.GeckoView
         android:id="@+id/geckoview"

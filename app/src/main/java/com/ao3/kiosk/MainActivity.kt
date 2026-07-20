@@ -1,11 +1,14 @@
 package com.ao3.kiosk
 
 import android.os.Bundle
+import android.view.KeyEvent
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.PopupMenu
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import org.mozilla.geckoview.AllowOrDeny
 import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
@@ -21,8 +24,15 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var geckoView: GeckoView
     private lateinit var session: GeckoSession
+    private lateinit var urlBar: EditText
+    private lateinit var btnBack: ImageButton
+    private lateinit var btnForward: ImageButton
+    private lateinit var btnReload: ImageButton
+    private lateinit var btnMenu: ImageButton
     private var runtime: GeckoRuntime? = null
     private var canGoBack = false
+    private var canGoForward = false
+    private var urlBarUserEditing = false
 
     companion object {
         private const val START_URL = "https://archiveofourown.org"
@@ -34,18 +44,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         geckoView = findViewById(R.id.geckoview)
+        urlBar = findViewById(R.id.url_bar)
+        btnBack = findViewById(R.id.btn_back)
+        btnForward = findViewById(R.id.btn_forward)
+        btnReload = findViewById(R.id.btn_reload)
+        btnMenu = findViewById(R.id.btn_menu)
 
-        setupImmersiveMode()
         setupGeckoView()
+        setupUrlBar()
+        setupNavigationButtons()
+        setupMenu()
         setupBackButton()
     }
 
-    /**
-     * 配置 GeckoView,设置 DoH + ECH 实现绕过 DNS 污染和 SNI 审查。
-     * 通过 configFilePath 在 Runtime 启动前注入 Gecko prefs:
-     * - DoH: network.trr.mode=3, 仅用 DoH 不回退系统 DNS
-     * - ECH: network.dns.echloop=true, 加密 ClientHello (Firefox 119+ 默认开启)
-     */
     private fun setupGeckoView() {
         session = GeckoSession()
 
@@ -60,7 +71,11 @@ class MainActivity : AppCompatActivity() {
                 url: String?,
                 perms: List<GeckoSession.PermissionDelegate.ContentPermission>,
                 hasUserGesture: Boolean
-            ) {}
+            ) {
+                if (!urlBarUserEditing && url != null) {
+                    urlBar.setText(url)
+                }
+            }
 
             override fun onLoadRequest(
                 session: GeckoSession,
@@ -71,11 +86,24 @@ class MainActivity : AppCompatActivity() {
 
             override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
                 this@MainActivity.canGoBack = canGoBack
+                btnBack.isEnabled = canGoBack
+                btnBack.alpha = if (canGoBack) 1.0f else 0.4f
+            }
+
+            override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
+                this@MainActivity.canGoForward = canGoForward
+                btnForward.isEnabled = canGoForward
+                btnForward.alpha = if (canGoForward) 1.0f else 0.4f
             }
         }
 
         session.progressDelegate = object : ProgressDelegate {
-            override fun onPageStart(session: GeckoSession, url: String) {}
+            override fun onPageStart(session: GeckoSession, url: String) {
+                if (!urlBarUserEditing) {
+                    urlBar.setText(url)
+                }
+            }
+
             override fun onPageStop(session: GeckoSession, success: Boolean) {
                 if (!success) {
                     session.loadUri(START_URL)
@@ -100,6 +128,8 @@ class MainActivity : AppCompatActivity() {
                 .configFilePath(configFile.absolutePath)
                 .build()
             runtime = GeckoRuntime.create(this, settings)
+
+            installWebExtension()
         }
 
         session.open(runtime!!)
@@ -107,10 +137,99 @@ class MainActivity : AppCompatActivity() {
         session.loadUri(START_URL)
     }
 
-    /**
-     * 返回键:kiosk 模式下,返回键用于网页后退。
-     * 如果网页无法后退(已在首页),不退出 app。
-     */
+    private fun installWebExtension() {
+        val extController = runtime!!.webExtensionController
+        extController.install("resource://android/assets/ao3-translator/")
+            .exceptionally { e ->
+                runOnUiThread {
+                    Toast.makeText(this, "翻译扩展加载失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                null
+            }
+    }
+
+    private fun setupUrlBar() {
+        urlBar.setOnFocusChangeListener { _, hasFocus ->
+            urlBarUserEditing = hasFocus
+            if (hasFocus) {
+                urlBar.selectAll()
+            }
+        }
+
+        urlBar.setOnEditorActionListener { _, actionId, event ->
+            if (actionId == android.R.id.imeActionGo ||
+                (event != null && event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
+                navigateToUrl(urlBar.text.toString())
+                urlBar.clearFocus()
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    private fun navigateToUrl(input: String) {
+        val url = input.trim()
+        if (url.isEmpty()) return
+
+        val finalUrl = when {
+            url.startsWith("http://") || url.startsWith("https://") -> url
+            url.contains(".") && !url.contains(" ") -> "https://$url"
+            else -> "https://archiveofourown.org/tags/search?q=" + java.net.URLEncoder.encode(url, "UTF-8")
+        }
+        session.loadUri(finalUrl)
+    }
+
+    private fun setupNavigationButtons() {
+        btnBack.setOnClickListener {
+            if (canGoBack) session.goBack()
+        }
+        btnForward.setOnClickListener {
+            if (canGoForward) session.goForward()
+        }
+        btnReload.setOnClickListener {
+            session.reload()
+        }
+    }
+
+    private fun setupMenu() {
+        btnMenu.setOnClickListener { view ->
+            val popup = PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, R.string.menu_home)
+            popup.menu.add(0, 2, 0, R.string.menu_doh)
+            popup.menu.add(0, 3, 0, R.string.menu_clear_cache)
+            popup.menu.add(0, 4, 0, R.string.menu_about)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> { session.loadUri(START_URL); true }
+                    2 -> { showDoHStatus(); true }
+                    3 -> { clearCache(); true }
+                    4 -> { showAbout(); true }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
+    }
+
+    private fun showDoHStatus() {
+        Toast.makeText(this, R.string.doh_enabled, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun clearCache() {
+        session.loader.purgeHistory()
+        Toast.makeText(this, "缓存已清除", Toast.LENGTH_SHORT).show()
+        session.reload()
+    }
+
+    private fun showAbout() {
+        AlertDialog.Builder(this)
+            .setTitle("关于 AO3 Kiosk")
+            .setMessage(getString(R.string.about_text))
+            .setPositiveButton("确定", null)
+            .show()
+    }
+
     private fun setupBackButton() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -121,20 +240,8 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    /**
-     * 沉浸式全屏:隐藏状态栏和导航栏。
-     */
-    private fun setupImmersiveMode() {
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        val controller = WindowInsetsControllerCompat(window, window.decorView)
-        controller.hide(WindowInsetsCompat.Type.systemBars())
-        controller.systemBarsBehavior =
-            WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-    }
-
     override fun onResume() {
         super.onResume()
-        setupImmersiveMode()
         session.setActive(true)
     }
 
@@ -146,12 +253,5 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         session.close()
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) {
-            setupImmersiveMode()
-        }
     }
 }

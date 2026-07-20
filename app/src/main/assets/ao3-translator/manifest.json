@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "AO3 Translator",
+  "version": "1.9.0",
+  "description": "AO3 Chinese localization and translation",
+  "content_scripts": [
+    {
+      "matches": [
+        "*://archiveofourown.org/*",
+        "*://*.archiveofourown.org/*",
+        "*://archiveofourown.gay/*",
+        "*://*.archiveofourown.gay/*"
+      ],
+      "js": ["injector.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": ["main.js"]
+}

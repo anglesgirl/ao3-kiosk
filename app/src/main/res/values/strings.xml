@@ -1,3 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">AO3</string>
+    <string name="url_hint">输入网址或搜索</string>
+    <string name="btn_back">后退</string>
+    <string name="btn_forward">前进</string>
+    <string name="btn_reload">刷新</string>
+    <string name="btn_menu">菜单</string>
+    <string name="menu_home">首页</string>
+    <string name="menu_doh">DoH + ECH</string>
+    <string name="menu_clear_cache">清除缓存</string>
+    <string name="menu_about">关于</string>
+    <string name="doh_enabled">DoH + ECH 已启用</string>
+    <string name="doh_disabled">DoH + ECH 已禁用</string>
+    <string name="about_text">AO3 Kiosk v1.1.0\nGeckoView 147 + ECH\n内置 AO3 中文翻译 (v1.9.0)\n\nDoH: Cloudflare Gateway\nECH: Encrypted Client Hello\n\nhttps://github.com/anglesgirl/ao3-kiosk</string>
 </resources>
