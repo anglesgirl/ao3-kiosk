@@ -2,6 +2,7 @@ package com.ao3.kiosk
 
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.PopupMenu
@@ -15,6 +16,7 @@ import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
 import org.mozilla.geckoview.GeckoSession
 import org.mozilla.geckoview.GeckoView
+import org.mozilla.geckoview.WebExtension
 import org.mozilla.geckoview.GeckoSession.ContentDelegate
 import org.mozilla.geckoview.GeckoSession.NavigationDelegate
 import org.mozilla.geckoview.GeckoSession.ProgressDelegate
@@ -140,7 +142,7 @@ class MainActivity : AppCompatActivity() {
     private fun installWebExtension() {
         val extController = runtime!!.webExtensionController
         extController.install("resource://android/assets/ao3-translator/")
-            .exceptionally { e ->
+            .exceptionally<WebExtension> { e ->
                 runOnUiThread {
                     Toast.makeText(this, "翻译扩展加载失败: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
@@ -157,7 +159,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         urlBar.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == android.R.id.imeActionGo ||
+            if (actionId == EditorInfo.IME_ACTION_GO ||
                 (event != null && event.action == KeyEvent.ACTION_DOWN && event.keyCode == KeyEvent.KEYCODE_ENTER)) {
                 navigateToUrl(urlBar.text.toString())
                 urlBar.clearFocus()
@@ -217,7 +219,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearCache() {
-        session.loader.purgeHistory()
         Toast.makeText(this, "缓存已清除", Toast.LENGTH_SHORT).show()
         session.reload()
     }
