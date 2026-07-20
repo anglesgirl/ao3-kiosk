@@ -145,13 +145,13 @@ class MainActivity : AppCompatActivity() {
             "resource://android/assets/ao3-translator/",
             "ao3-translator@ao3-kiosk"
         ).accept(
-            { ext ->
-                android.util.Log.i("AO3Kiosk", "翻译扩展加载成功: ${ext.id}")
+            { ext: WebExtension? ->
+                android.util.Log.i("AO3Kiosk", "翻译扩展加载成功: ${ext?.id}")
             },
-            { e ->
+            { e: Throwable? ->
                 android.util.Log.e("AO3Kiosk", "翻译扩展加载失败", e)
                 runOnUiThread {
-                    Toast.makeText(this, "翻译扩展加载失败: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this, "翻译扩展加载失败: ${e?.message}", Toast.LENGTH_LONG).show()
                 }
             }
         )
