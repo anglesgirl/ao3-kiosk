@@ -3,6 +3,12 @@
   "name": "AO3 Translator",
   "version": "1.9.0",
   "description": "AO3 Chinese localization and translation",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ao3-translator@ao3-kiosk",
+      "strict_min_version": "119.0"
+    }
+  },
   "content_scripts": [
     {
       "matches": [

@@ -141,13 +141,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun installWebExtension() {
         val extController = runtime!!.webExtensionController
-        extController.install("resource://android/assets/ao3-translator/")
-            .exceptionally<WebExtension> { e ->
+        extController.ensureBuiltIn(
+            "resource://android/assets/ao3-translator/",
+            "ao3-translator@ao3-kiosk"
+        ).accept(
+            { ext ->
+                android.util.Log.i("AO3Kiosk", "翻译扩展加载成功: ${ext.id}")
+            },
+            { e ->
+                android.util.Log.e("AO3Kiosk", "翻译扩展加载失败", e)
                 runOnUiThread {
-                    Toast.makeText(this, "翻译扩展加载失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "翻译扩展加载失败: ${e.message}", Toast.LENGTH_LONG).show()
                 }
-                null
             }
+        )
     }
 
     private fun setupUrlBar() {
@@ -177,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         val finalUrl = when {
             url.startsWith("http://") || url.startsWith("https://") -> url
             url.contains(".") && !url.contains(" ") -> "https://$url"
-            else -> "https://archiveofourown.org/tags/search?q=" + java.net.URLEncoder.encode(url, "UTF-8")
+            else -> "https://archiveofourown.org/works/search?work_search[query]=" + java.net.URLEncoder.encode(url, "UTF-8")
         }
         session.loadUri(finalUrl)
     }

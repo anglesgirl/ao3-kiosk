@@ -4,8 +4,17 @@
  */
 (function() {
     'use strict';
+    var runtime = (typeof browser !== 'undefined') ? browser.runtime :
+                  (typeof chrome !== 'undefined') ? chrome.runtime : null;
+    if (!runtime) {
+        console.error('[AO3 Kiosk] No extension runtime found');
+        return;
+    }
     var script = document.createElement('script');
-    script.src = browser.runtime.getURL('main.js');
+    script.src = runtime.getURL('main.js');
     script.onload = function() { script.remove(); };
+    script.onerror = function(e) {
+        console.error('[AO3 Kiosk] Failed to load main.js:', e);
+    };
     (document.head || document.documentElement).appendChild(script);
 })();
