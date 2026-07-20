@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         val finalUrl = when {
             url.startsWith("http://") || url.startsWith("https://") -> url
             url.contains(".") && !url.contains(" ") -> "https://$url"
-            else -> "https://archiveofourown.org/works/search?work_search[query]=" + java.net.URLEncoder.encode(url, "UTF-8")
+            else -> "https://archiveofourown.org/works/search?work_search%5Bquery%5D=" + java.net.URLEncoder.encode(url, "UTF-8")
         }
         session.loadUri(finalUrl)
     }
